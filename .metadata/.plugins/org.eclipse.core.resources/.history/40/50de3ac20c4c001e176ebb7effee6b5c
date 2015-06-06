@@ -1,0 +1,75 @@
+import javax.swing.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+@SuppressWarnings("serial")
+public class Help extends JFrame implements ActionListener {
+	File helpfile;
+	JPanel main;
+	JEditorPane text=new JEditorPane("text/html","");
+	JScrollPane scrolltext=new JScrollPane(text,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	Dimension windowSize=new Dimension(400,600);
+	public Help(){//open to contents (page 0)
+		this(0);
+	}
+	public Help(int page){
+		super("Encryption Manager Help");
+		try {
+			helpfile=new File(getClass().getResource("EM.hlp").toURI());
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Unable to find or open help file!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		main=new JPanel(new SpringLayout());
+		main.add(scrolltext);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.NORTH, scrolltext, 0, SpringLayout.NORTH, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, scrolltext, 0, SpringLayout.EAST, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.SOUTH, scrolltext, 0, SpringLayout.SOUTH, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, scrolltext, 0, SpringLayout.WEST, main);
+		
+		text.setEnabled(true);
+		text.setEditable(false);
+		setContentPane(main);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setSize(windowSize);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation(((int)screenSize.getWidth()/2)-200,((int)screenSize.getHeight()/2)-300);
+		loadHelp(page);
+		setVisible(true);//show window
+	}
+	
+	private void loadHelp(int page){
+		BufferedReader br=null;
+		try {
+			br=new BufferedReader(new FileReader(helpfile));
+		} catch (Exception e){
+			JOptionPane.showMessageDialog(null, "Unable to find or open help file!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String line="";
+		try {
+			line=br.readLine();
+			while(!line.equals(""+page)){
+				line=br.readLine();
+			}
+			line=br.readLine();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Help page not found.\nThe page does not exist, or the help file is corrupt.", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		text.setText("<html><body>"+line+"</body></html>");
+		text.repaint();
+		text.revalidate();
+	}
+	public void actionPerformed(ActionEvent arg0) {
+		
+	}
+
+}

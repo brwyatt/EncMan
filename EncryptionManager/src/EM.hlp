@@ -1,0 +1,16 @@
+0
+<h1>Encryption Manager Help - Contents</h1><ul><li><a href="100">General Information</a><ul><li><a href="101">Crypto Library</a></li><li><a href="102">Identities</a></li></ul></li><li><a href="200">Encryption Information</a><ul><li><a href="201">Private Key Encryption</a></li><li><a href="202">Public Key Encryption</a></li><li><a href="203">Hashes</a></li></ul></li></ul>
+100
+<h1>General Infromation</h1><ul><li><a href="101">Crypto Library</a></li><li><a href="102">Identities</a></li></ul>
+101
+<h1>General Information - Crypto Library</h1><a href="100">General Information</a><br><br>The Crypto Library provides the encryption, decryption, and hashing functions needed for Encryption Manager to work. Without the library, Encryption Manager will not be able to function correctly.
+102
+<h1>General Information - Identities</h1><a href="100">General Information</a><br><br>Identities are used to uniquely identify you to others, as well as allowing people to send you messages or data that only you will be able to decrypt. The use of <a href="202">Public Key Encryption</a> allows data to be encrypted for a specific person and self-signing of data, meaning that the sorce of the data can be verified once it is decrypted. The use of Identities allows secure communication between two persons in which only the intended recipient can decrypt and the sender can be verified.
+200
+<h1>Encryption Information</h1><ul><li><a href="201">Private Key Encryption</a></li><li><a href="202">Public Key Encryption</a></li><li><a href="203">Hashes</a></li></ul>
+201
+<h1>Encryption Information - Private Key Encryption</h1><a href="200">Encryption Information</a><br><br>Private Key Encryption is a method of encryption where a single key is used to both encrypt and decrypt data. Since the same key is used for both encryption and decryption, anyone who has the key will be able to decrypt the data.<br><br>Examples of Private Key Encryption include AES, TEA, Blowfish, and RC4.
+202
+<h1>Encryption Information - Public Key Encryption</h1><a href="200">Encryption Information</a><br><br>Public Key Encryption is a method of encryption in which two keys are used. The public key is shared with everyone and is used to encrypt data to be sent to another person and to decrypt signatures to verify the sender's identity. The private key is used to decrypt data as well as to sign the data for verification. As such data encrypted using Public Key Encryption can only be encrypted for one person at a time.<br><br>Examples of Public Key Encryption include RSA, PGP, SSH, and SSL.
+203
+<h1>Encryption Information - Hashes</h1><a href="200">Encryption Information</a><br><br>Hashes are cryptographic functions that convert data into data of a fixed length and is useful for comparison purposes. Hashes of data can not be reversed to recover the original data used to generate the hash. Since hash functions generate hashes of a fixed length regardless of the size of the data used to generate it, it is possible for a hash function to generate the same hash from two unique sets of data.

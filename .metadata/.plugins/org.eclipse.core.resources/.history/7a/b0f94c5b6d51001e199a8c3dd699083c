@@ -1,0 +1,149 @@
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+@SuppressWarnings("serial")
+public class Help extends JFrame implements ActionListener, ComponentListener, HyperlinkListener {
+	File helpfile;
+	JPanel main;
+	JEditorPane text=new JEditorPane("text/html","");
+	JScrollPane scrolltext=new JScrollPane(text,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	JButton close=new JButton("Close");
+	JButton prev=new JButton("<<");
+	JButton next=new JButton(">>");
+	JButton contents=new JButton("Contents");
+	Dimension windowSize=new Dimension(400,500);
+	int currentPage;
+	public Help(){//open to contents (page 0)
+		this(0);
+	}
+	public Help(int page){
+		super("Encryption Manager Help");
+
+		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("Icon_SM.jpg")));//set frame icon
+		
+		try {
+			helpfile=new File(getClass().getResource("EM.hlp").toURI());
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Unable to find or open help file!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		main=new JPanel(new SpringLayout());
+		main.add(prev);
+		prev.addActionListener(this);
+		main.add(contents);
+		contents.addActionListener(this);
+		main.add(next);
+		next.addActionListener(this);
+		main.add(scrolltext);
+		text.addHyperlinkListener(this);
+		main.add(close);
+		close.addActionListener(this);
+
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, prev, 5, SpringLayout.WEST, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.NORTH, prev, 5, SpringLayout.NORTH, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, prev, 50, SpringLayout.WEST, prev);
+
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.NORTH, next, 5, SpringLayout.NORTH, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, next, -5, SpringLayout.EAST, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, next, -50, SpringLayout.EAST, next);
+
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.NORTH, contents, 5, SpringLayout.NORTH, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, contents, -(int)((windowSize.getWidth()/2)-70), SpringLayout.EAST, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, contents, (int)((windowSize.getWidth()/2)-70), SpringLayout.WEST, main);
+
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.SOUTH, close, -5, SpringLayout.SOUTH, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, close, -(int)((windowSize.getWidth()/2)-60), SpringLayout.EAST, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, close, (int)((windowSize.getWidth()/2)-60), SpringLayout.WEST, main);
+		
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.NORTH, scrolltext, 5, SpringLayout.SOUTH, prev);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, scrolltext, -5, SpringLayout.EAST, main);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.SOUTH, scrolltext, -5, SpringLayout.NORTH, close);
+		((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, scrolltext, 5, SpringLayout.WEST, main);
+		
+		text.setEnabled(true);
+		text.setEditable(false);
+		setContentPane(main);
+		main.addComponentListener(this);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setSize(windowSize);
+		this.setMinimumSize(windowSize);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation(((int)screenSize.getWidth()/2)-((int)windowSize.getWidth()/2),((int)screenSize.getHeight()/2)-((int)windowSize.getHeight()/2));
+		loadHelp(page);
+		setVisible(true);//show window
+	}
+	
+	private void loadHelp(int page){
+		BufferedReader br=null;
+		try {
+			br=new BufferedReader(new FileReader(helpfile));
+		} catch (Exception e){
+			JOptionPane.showMessageDialog(this, "Unable to find or open help file!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String line="";
+		try {
+			line=br.readLine();
+			while(!line.equals(""+page)){
+				line=br.readLine();
+			}
+			line=br.readLine();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Help page not found.\nThe page does not exist, or the help file is corrupt.", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		text.setText("<html><body>"+line+"</body></html>");
+		text.repaint();
+		text.revalidate();
+		currentPage=page;
+	}
+	public void actionPerformed(ActionEvent arg0) {
+		Object src=arg0.getSource();
+		if(src==close){
+			dispose();
+		}else if(src==prev){
+			loadHelp(currentPage-1);
+		}else if(src==next){
+			loadHelp(currentPage+1);
+		}else if(src==contents){
+			loadHelp(0);
+		}
+	}
+	public void componentHidden(ComponentEvent arg0) {
+	}
+	public void componentMoved(ComponentEvent e) {
+	}
+	public void componentResized(ComponentEvent e) {
+		if(e.getSource()==main){
+			((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, contents, -(int)((getWidth()/2)-70), SpringLayout.EAST, main);
+			((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, contents, (int)((getWidth()/2)-70), SpringLayout.WEST, main);
+			((SpringLayout)main.getLayout()).putConstraint(SpringLayout.EAST, close, -(int)((getWidth()/2)-60), SpringLayout.EAST, main);
+			((SpringLayout)main.getLayout()).putConstraint(SpringLayout.WEST, close, (int)((getWidth()/2)-60), SpringLayout.WEST, main);
+		}
+	}
+	public void componentShown(ComponentEvent e) {
+	}
+	public void hyperlinkUpdate(HyperlinkEvent arg0) {
+		if(he.getEventType()==HyperlinkEvent.EventType.ACTIVATED)
+		String p=arg0.getURL().toString();
+		int page=0;
+		try{
+			page=Integer.parseInt(p);
+		}catch(Exception e){
+			JOptionPane.showMessageDialog(this, "The page could not be opened: The link is malformed.", "Error Opening Page", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		loadHelp(page);
+	}
+
+}

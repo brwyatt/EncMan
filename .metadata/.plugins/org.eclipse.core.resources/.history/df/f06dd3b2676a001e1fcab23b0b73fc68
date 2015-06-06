@@ -1,0 +1,81 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+@SuppressWarnings("serial")
+public class MainWindow extends JFrame implements ActionListener, WindowListener{
+	
+	private boolean traySupported=true;
+	private SysTray tray=null;
+	
+	public MainWindow(){
+		try{
+			tray=new SysTray(this);
+		}catch(Exception e){
+			traySupported=false;
+		}
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(this);
+
+		
+		setSize(800,600);
+		setVisible(true);
+	}
+	
+	public void toggleWindow(){
+		if(isVisible()){
+			setVisible(false);
+		}else{
+			setVisible(true);
+		}
+		if(traySupported){
+			tray.checkWindowVisible();
+		}
+	}
+	public boolean visible(){
+		return isVisible();
+	}
+	public void close(){
+		if(JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "Exit Encryption Manager?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==JOptionPane.YES_OPTION){
+			this.dispose();
+			if(traySupported){
+				tray.dispose();
+			}
+			EncryptionManager.close();
+		}
+	}
+
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowClosed(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowClosing(WindowEvent arg0) {
+		if(traySupported){
+			toggleWindow();
+		}else{
+			close();
+		}
+	}
+	public void windowDeactivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowDeiconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowIconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowOpened(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+}

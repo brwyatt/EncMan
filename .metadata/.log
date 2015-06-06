@@ -1,0 +1,84 @@
+!SESSION 2009-05-27 14:30:40.274 -----------------------------------------------
+eclipse.buildId=M20080911-1700
+java.version=1.6.0_11
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.core.resources 2 10035 2009-05-27 14:30:59.888
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+!SESSION 2009-06-12 19:13:38.334 -----------------------------------------------
+eclipse.buildId=M20080911-1700
+java.version=1.6.0_13
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.core.resources 2 10035 2009-06-12 19:13:50.298
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+
+!ENTRY org.eclipse.epp.usagedata.recording 1 0 2009-06-12 19:45:00.482
+!MESSAGE Usage data uploaded to http://udc.eclipse.org/upload.php in 8249 milliseconds.
+!SESSION 2009-06-12 21:41:01.345 -----------------------------------------------
+eclipse.buildId=M20080911-1700
+java.version=1.6.0_13
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.core.resources 2 10035 2009-06-12 21:41:20.263
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+!SESSION 2009-06-23 18:15:08.234 -----------------------------------------------
+eclipse.buildId=M20080911-1700
+java.version=1.6.0_13
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.core.resources 2 10035 2009-06-23 18:15:40.494
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+
+!ENTRY org.eclipse.epp.usagedata.recording 1 0 2009-06-23 18:21:16.768
+!MESSAGE Usage data uploaded to http://udc.eclipse.org/upload.php in 12230 milliseconds.
+!SESSION 2009-06-28 17:17:24.207 -----------------------------------------------
+eclipse.buildId=M20080911-1700
+java.version=1.6.0_13
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.core.resources 2 10035 2009-06-28 17:17:47.221
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+
+!ENTRY org.eclipse.jdt.core 4 4 2009-06-28 17:38:31.495
+!MESSAGE JavaBuilder handling ImageBuilderInternalException while building: EncryptionManager
+!STACK 1
+org.eclipse.core.internal.resources.ResourceException: Resource already exists on disk: '/EncryptionManager/bin/Multi_Window.gif'.
+	at org.eclipse.core.internal.localstore.FileSystemResourceManager.copy(FileSystemResourceManager.java:184)
+	at org.eclipse.core.internal.resources.Resource.copy(Resource.java:493)
+	at org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.copyResource(AbstractImageBuilder.java:378)
+	at org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IncrementalImageBuilder.java:643)
+	at org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IncrementalImageBuilder.java:473)
+	at org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.build(IncrementalImageBuilder.java:92)
+	at org.eclipse.jdt.internal.core.builder.JavaBuilder.buildDeltas(JavaBuilder.java:265)
+	at org.eclipse.jdt.internal.core.builder.JavaBuilder.build(JavaBuilder.java:193)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:633)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:37)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:170)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:201)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:253)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:37)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:256)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:309)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:341)
+	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:140)
+	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:238)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:55)
+!SUBENTRY 1 org.eclipse.core.resources 4 272 2009-06-28 17:38:31.495
+!MESSAGE Resource already exists on disk: '/EncryptionManager/bin/Multi_Window.gif'.
+
+!ENTRY org.eclipse.epp.usagedata.recording 1 0 2009-06-28 22:24:04.579
+!MESSAGE Usage data uploaded to http://udc.eclipse.org/upload.php in 5335 milliseconds.
+
+!ENTRY org.eclipse.epp.usagedata.recording 1 0 2009-07-05 18:28:05.190
+!MESSAGE Usage data uploaded to http://udc.eclipse.org/upload.php in 4945 milliseconds.

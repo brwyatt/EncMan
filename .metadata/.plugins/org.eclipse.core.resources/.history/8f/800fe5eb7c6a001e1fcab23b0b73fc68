@@ -1,0 +1,179 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.SpringLayout;
+
+@SuppressWarnings("serial")
+public class MainWindow extends JFrame implements ActionListener, WindowListener{
+	private boolean traySupported=true;
+	private SysTray tray=null;
+	private JPanel main;
+	private JLabel idLbl=new JLabel("Current ID:");
+	private JLabel idNameLbl=new JLabel();
+	private JTabbedPane tabPane=new JTabbedPane();
+	
+	public MainWindow(){
+		try{
+			tray=new SysTray(this);
+		}catch(Exception e){
+			traySupported=false;
+		}
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(this);
+		
+		setSize();
+		setLocation();
+		
+		main=new JPanel(new BorderLayout());
+		JPanel header=new JPanel(new SpringLayout());
+		header.add(idLbl);
+		header.add(idNameLbl);
+		((SpringLayout)header.getLayout()).putConstraint(SpringLayout.WEST, idLbl, 5, SpringLayout.WEST, header);
+		((SpringLayout)header.getLayout()).putConstraint(SpringLayout.NORTH, idLbl, 5, SpringLayout.NORTH, header);
+		((SpringLayout)header.getLayout()).putConstraint(SpringLayout.NORTH, idNameLbl, 0, SpringLayout.NORTH, idLbl);
+		((SpringLayout)header.getLayout()).putConstraint(SpringLayout.WEST, idNameLbl, 5, SpringLayout.EAST, idLbl);
+		((SpringLayout)header.getLayout()).putConstraint(SpringLayout.SOUTH, idLbl, -5, SpringLayout.SOUTH, header);
+
+		//((SpringLayout)header.getLayout()).putConstraint(SpringLayout.SOUTH, header, 40, SpringLayout.NORTH, header);
+		
+		main.add(header);
+		main.add(tabPane,BorderLayout.CENTER);
+		idNameLbl.setText(EncryptionManager.currentIDName());
+		tabPane.addTab("Main", null, createMainPage(),"Main");
+		tabPane.addTab("Text", null, createTextPage(),"Encrypt/Decrypt Text");
+		tabPane.addTab("Files", null, createFilesPage(),"Encrypt/Decrypt Files");
+		tabPane.addTab("ID Manager", null, createIDPage(),"Manage your IDs");
+		tabPane.addTab("Key Manager", null, createKeysPage(),"Manage known Keys");
+		tabPane.addTab("Settings", null, createSettingsPage(),"Settings");
+		
+		add(main);
+		setVisible(true);
+	}
+	
+	private void setSize(){
+		setMinimumSize(new Dimension(500,375));
+		int w=400;
+		int h=300;
+		try{
+			w=Integer.parseInt(Settings.getSetting("LAST_WIDTH"));
+		}catch(NumberFormatException e){
+		}
+		try{
+			h=Integer.parseInt(Settings.getSetting("LAST_HEIGHT"));
+		}catch(NumberFormatException e){
+		}
+		setSize(w,h);
+	}
+	private void setLocation(){
+		int x=-1;
+		int y=-1;
+		try{
+			x=Integer.parseInt(Settings.getSetting("LAST_XPOS"));
+		}catch(NumberFormatException e){
+		}
+		try{
+			y=Integer.parseInt(Settings.getSetting("LAST_YPOS"));
+		}catch(NumberFormatException e){
+		}
+		Dimension screensize=Toolkit.getDefaultToolkit().getScreenSize();
+		if(x<0){
+			x=((int)screensize.getWidth()/2)-(this.getWidth()/2);
+		}
+		if((x+this.getWidth())>screensize.getWidth()){
+			x=(int)screensize.getWidth()-this.getWidth();
+		}
+		if(y<0){
+			y=((int)screensize.getHeight()/2)-(this.getHeight()/2);
+		}
+		if((y+this.getHeight())>screensize.getHeight()){
+			y=(int)screensize.getHeight()-this.getHeight();
+		}
+		setLocation(x,y);
+	}
+	
+	private JPanel createMainPage(){
+		return new JPanel();
+	}
+	private JPanel createTextPage(){
+		return new JPanel();
+	}
+	private JPanel createFilesPage(){
+		return new JPanel();
+	}
+	private JPanel createIDPage(){
+		return new JPanel();
+	}
+	private JPanel createKeysPage(){
+		return new JPanel();
+	}
+	private JPanel createSettingsPage(){
+		return new JPanel();
+	}
+	
+	public void toggleWindow(){
+		if(isVisible()){
+			setVisible(false);
+		}else{
+			setVisible(true);
+		}
+		if(traySupported){
+			tray.checkWindowVisible();
+		}
+	}
+	public boolean visible(){
+		return isVisible();
+	}
+	public void close(){
+		if(JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "Exit Encryption Manager?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==JOptionPane.YES_OPTION){
+			Settings.addSetting("LAST_WIDTH",""+this.getWidth());
+			Settings.addSetting("LAST_HEIGHT", ""+this.getHeight());
+			Settings.addSetting("LAST_XPOS", ""+this.getX());
+			Settings.addSetting("LAST_YPOS", ""+this.getY());
+			if(traySupported){
+				tray.dispose();
+			}
+			this.dispose();
+			EncryptionManager.close();
+		}
+	}
+
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowClosed(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowClosing(WindowEvent arg0) {
+		if(traySupported){
+			toggleWindow();
+		}else{
+			close();
+		}
+	}
+	public void windowDeactivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowDeiconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowIconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	public void windowOpened(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+}

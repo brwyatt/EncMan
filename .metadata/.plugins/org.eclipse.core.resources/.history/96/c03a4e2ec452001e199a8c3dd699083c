@@ -1,0 +1,256 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import javax.swing.JOptionPane;
+
+public class ID {
+	public final int HASH_MD2=0;
+	public final int HASH_MD5=1;
+	public final int HASH_SHA1_MD2=2;
+	public final int HASH_SHA1_MD5=3;
+	public final int HASH_SHA256_MD2=4;
+	public final int HASH_SHA256_MD5=5;
+	public final int HASH_SHA384_MD2=6;
+	public final int HASH_SHA384_MD5=7;
+	public final int HASH_SHA512_MD2=8;
+	public final int HASH_SHA512_MD5=9;
+	public final int HASH_DEFAULT=HASH_SHA512_MD5;
+	
+	private File idFile=null;
+	private String name=null;
+	private String prvKey=null;
+	private String pubKey=null;
+	private String pass=null;
+	private String passhash=null;
+	private int passMethod=HASH_DEFAULT;
+	private boolean online=false;
+	private String onlinename=null;
+	private String onlinepass=null;
+	
+	public ID(File f){//if file exists, it will read in the information, otherwise, it will create it
+		idFile=f;
+		if(idFile.exists()){
+			readID();
+		}else{
+			try {
+				idFile.createNewFile();
+			} catch (IOException e){
+			}
+		}
+	}public ID(String n){//if file exists, it will read in the information, otherwise, it will create it
+		idFile=new File(Settings.getSetting("ID_FOLDER")+"/"+n+".id");
+		if(idFile.exists()){
+			readID();
+		}else{
+			try {
+				idFile.createNewFile();
+			} catch (IOException e){
+			}
+		}
+	}
+	public ID(File f,String n,String prv,String pub,String p){
+		idFile=f;
+		if(!idFile.exists()){
+			try {
+				idFile.createNewFile();
+			} catch (IOException e){
+			}
+		}
+		name=n;
+		prvKey=prv;
+		pubKey=pub;
+		pass=p;
+		resolvepasshash();
+		writeID();
+	}
+	public ID(File f,String n,String prv,String pub,String p,int method){
+		idFile=f;
+		if(!idFile.exists()){
+			try {
+				idFile.createNewFile();
+			} catch (IOException e){
+			}
+		}
+		passMethod=method;
+		name=n;
+		prvKey=prv;
+		pubKey=pub;
+		pass=p;
+		resolvepasshash();
+		writeID();
+	}
+	public ID(String n,String prv,String pub,String p,int method){
+		idFile=new File(Settings.getSetting("ID_FOLDER")+"/"+n+".id");
+		if(!idFile.exists()){
+			try {
+				idFile.createNewFile();
+			} catch (IOException e){
+			}
+		}
+		passMethod=method;
+		name=n;
+		prvKey=prv;
+		pubKey=pub;
+		pass=p;
+		resolvepasshash();
+		writeID();
+	}
+	public ID(String n,String prv,String pub,String p){
+		idFile=new File(Settings.getSetting("ID_FOLDER")+"/"+n+".id");
+		if(!idFile.exists()){
+			try {
+				idFile.createNewFile();
+			} catch (IOException e){
+			}
+		}
+		name=n;
+		prvKey=prv;
+		pubKey=pub;
+		pass=p;
+		resolvepasshash();
+		writeID();
+	}
+	public void setName(String n){
+		name=n;
+	}
+	public void setPrvKey(String n){
+		prvKey=n;
+	}
+	public void setPubKey(String n){
+		pubKey=n;
+	}
+	public void setPass(String n){
+		pass=n;
+	}
+	public void setOnlinename(String n){
+		onlinename=n;
+	}
+	public void setOnlinepass(String n){
+		onlinepass=n;
+	}
+	public String getName(){
+		return name;
+	}
+	public String getPrvKey(){
+		return prvKey;
+	}
+	public String getPubKey(){
+		return pubKey;
+	}
+	public String getPass(){
+		return pass;
+	}
+	public String getOnlinename(){
+		return onlinename;
+	}
+	public String getOnlinepass(){
+		return onlinepass;
+	}
+	public boolean resolvepasshash(){
+		if(passMethod>9||passMethod<0||pass==null){
+			return false;
+		}
+		switch(passMethod){
+			case HASH_MD2: passhash=Hashes.getMD2(pass).substring(0,31); break;
+			case HASH_MD5: passhash=Hashes.getMD5(pass).substring(0,31); break;
+			case HASH_SHA1_MD2: passhash=Hashes.getMD2(Hashes.getSHA1(pass)).substring(0,31); break;
+			case HASH_SHA1_MD5: passhash=Hashes.getMD5(Hashes.getSHA1(pass)).substring(0,31); break;
+			case HASH_SHA256_MD2: passhash=Hashes.getMD2(Hashes.getSHA256(pass)).substring(0,31); break;
+			case HASH_SHA256_MD5: passhash=Hashes.getMD5(Hashes.getSHA256(pass)).substring(0,31); break;
+			case HASH_SHA384_MD2: passhash=Hashes.getMD2(Hashes.getSHA384(pass)).substring(0,31); break;
+			case HASH_SHA384_MD5: passhash=Hashes.getMD5(Hashes.getSHA384(pass)).substring(0,31); break;
+			case HASH_SHA512_MD2: passhash=Hashes.getMD2(Hashes.getSHA512(pass)).substring(0,31); break;
+			case HASH_SHA512_MD5: passhash=Hashes.getMD5(Hashes.getSHA512(pass)).substring(0,31); break;
+		}
+		return true;
+	}
+	public boolean readID(){
+		try {
+			BufferedReader br=new BufferedReader(new FileReader(idFile));
+			name=br.readLine();
+			passMethod=Integer.parseInt(br.readLine());
+			if(br.readLine().equals("true")){
+				online=true;
+			}else{
+				online=false;
+			}
+			if(pass!=null||passhash!=null){
+				if(passhash==null){
+					if(!resolvepasshash()){
+						br.close();
+						return false;
+					}
+				}
+				if(online){
+					onlinename=br.readLine();
+					onlinepass=TEAV.decrypt(br.readLine(), passhash);
+				}
+				prvKey=TEAV.decrypt(br.readLine(), passhash);
+				pubKey=TEAV.decrypt(br.readLine(), passhash);
+			}else{
+				br.close();
+				return false;
+			}
+			br.close();
+		} catch (Exception e){
+			return false;
+		}
+		return true;
+	}
+	public boolean writeID(){
+		try{
+			BufferedWriter bw=new BufferedWriter(new FileWriter(idFile));
+			bw.write(name);
+			bw.newLine();
+			bw.write(""+passMethod);
+			bw.newLine();
+			if(pass!=null||passhash!=null){
+				if(passhash==null){
+					if(!resolvepasshash()){
+						bw.close();
+						return false;
+					}
+				}
+				if(online){
+					bw.write("true");
+					bw.newLine();
+					bw.write(onlinename);
+					bw.newLine();
+					bw.write(TEAV.encrypt(onlinepass, passhash));
+				}else{
+					bw.write("false");
+				}
+				bw.newLine();
+				bw.write(TEAV.encrypt(prvKey, passhash));
+				bw.newLine();
+				bw.write(TEAV.encrypt(pubKey, passhash));
+			}else{
+				bw.close();
+				return false;
+			}
+			bw.close();
+		}catch(Exception e){
+			return false;
+		}
+		return true;
+	}
+    public static boolean loadLibrary(){
+		File f=new File(Settings.getSetting("Crypto_Lib"));
+		try{
+			URL lib=new URL("jar:file:/"+f.getAbsolutePath()+"!/");
+			URLClassLoader ucl=new URLClassLoader(new URL[] {lib});
+			ucl.loadClass("Crypto");
+			ucl.loadClass("Hashes");
+			ucl.loadClass("RSA");
+			ucl.loadClass("TEAV");
+		} catch (Throwable e){
+			return false;
+		}
+		return true;
+	}
+}

@@ -1,0 +1,191 @@
+import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import javax.swing.*;
+
+@SuppressWarnings("serial")
+public class NewID extends JDialog implements ActionListener{
+	private JPanel pane;
+	private JLabel title=new JLabel("Create New Identity");
+	private JLabel namelbl=new JLabel("Identity Name:");
+	private JTextField name=new JTextField();
+	private JLabel pass1lbl=new JLabel("Enter Password:");
+	private JPasswordField pass1=new JPasswordField();
+	private JLabel pass2lbl=new JLabel("Again:");
+	private JPasswordField pass2=new JPasswordField();
+	private JLabel hashmethodlbl=new JLabel("Hash Method:");
+	private String[] hashmethods={"MD2", "MD5", "SHA1->MD2", "SHA1->MD5", "SHA256->MD2", "SHA256->MD5", "SHA384->MD2", "SHA384->MD5", "SHA512->MD2", "SHA512->MD5"};
+	private JComboBox hashmethod=new JComboBox(hashmethods);
+	private JCheckBox online=new JCheckBox("Integrate with Online Account",false);
+	private JLabel ounamelbl=new JLabel("User name:");
+	private JTextField ouname=new JTextField();
+	private JLabel opasslbl=new JLabel("Password:");
+	private JPasswordField opass=new JPasswordField();
+	private JButton newaccount=new JButton("Create New Account...");
+	
+	private JButton save=new JButton("Save Identity");
+	private JButton discard=new JButton("Discard Identity");
+	
+	private JFrame keyWindow;
+	
+	public NewID(JFrame parent){
+		super(parent,"Create New Identity", true);
+		
+		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("Icon_SM.jpg")));//set frame icon
+		
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		
+		pane=new JPanel(new SpringLayout());
+		title.setFont(new Font("",Font.BOLD,20));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, title, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, title, 5, SpringLayout.NORTH, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, title, -5, SpringLayout.EAST, pane);
+		pane.add(title);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, namelbl, 10, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, namelbl, 25, SpringLayout.SOUTH, title);
+		pane.add(namelbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, name, 10, SpringLayout.EAST, namelbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, name, 0, SpringLayout.NORTH, namelbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, name, -10, SpringLayout.EAST, pane);
+		pane.add(name);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, pass1lbl, 10, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, pass1lbl, 25, SpringLayout.SOUTH, namelbl);
+		pane.add(pass1lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, pass1, 10, SpringLayout.EAST, pass1lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, pass1, 0, SpringLayout.NORTH, pass1lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, pass1, -10, SpringLayout.EAST, pane);
+		pane.add(pass1);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, pass2lbl, 0, SpringLayout.EAST, pass1lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, pass2lbl, 10, SpringLayout.SOUTH, pass1lbl);
+		pane.add(pass2lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, pass2, 10, SpringLayout.EAST, pass2lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, pass2, 0, SpringLayout.NORTH, pass2lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, pass2, -10, SpringLayout.EAST, pane);
+		pane.add(pass2);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, hashmethodlbl, 0, SpringLayout.EAST, pass1lbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, hashmethodlbl, 10, SpringLayout.SOUTH, pass2lbl);
+		pane.add(hashmethodlbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, hashmethod, 10, SpringLayout.EAST, hashmethodlbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, hashmethod, 0, SpringLayout.NORTH, hashmethodlbl);
+		hashmethod.setSelectedIndex(hashmethods.length-1);
+		pane.add(hashmethod);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, online, 20, SpringLayout.SOUTH, hashmethod);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, online, 5, SpringLayout.WEST, pane);
+		online.addActionListener(this);
+		pane.add(online);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, ounamelbl, 10, SpringLayout.SOUTH, online);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, ounamelbl, 25, SpringLayout.WEST, pane);
+		ounamelbl.setEnabled(false);
+		pane.add(ounamelbl);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, ouname, 0, SpringLayout.NORTH, ounamelbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, ouname, 5, SpringLayout.EAST, ounamelbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, ouname, -10, SpringLayout.EAST, pane);
+		ouname.setEnabled(false);
+		pane.add(ouname);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, opasslbl, 10, SpringLayout.SOUTH, ounamelbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, opasslbl, 0, SpringLayout.EAST, ounamelbl);
+		opasslbl.setEnabled(false);
+		pane.add(opasslbl);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, opass, 0, SpringLayout.NORTH, opasslbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, opass, 5, SpringLayout.EAST, opasslbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, opass, -10, SpringLayout.EAST, pane);
+		opass.setEnabled(false);
+		pane.add(opass);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, newaccount, 10, SpringLayout.SOUTH, opasslbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, newaccount, 50, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, newaccount, -50, SpringLayout.EAST, pane);
+		newaccount.setEnabled(false);
+		newaccount.addActionListener(this);
+		pane.add(newaccount);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, save, 50, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.SOUTH, save, -5, SpringLayout.SOUTH, pane);
+		save.addActionListener(this);
+		pane.add(save);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, discard, -50, SpringLayout.EAST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.SOUTH, discard, -5, SpringLayout.SOUTH, pane);
+		discard.addActionListener(this);
+		pane.add(discard);
+		
+		add(pane);
+		setSize(350, 400);
+		setResizable(false);
+		setLocationRelativeTo(parent);
+		setVisible(true);
+	}
+	public void actionPerformed(ActionEvent ae) {
+		Object src=ae.getSource();
+		if(src==save){
+			if(name.getText().length()<2){
+				JOptionPane.showMessageDialog(this, "The name must be at least two characters long.", "Invalid Name", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			if(new String(pass2.getPassword()).equals(new String(pass1.getPassword()))){
+				if(pass2.getPassword().length<20 && JOptionPane.YES_OPTION!=JOptionPane.showConfirmDialog(this, "It is recommended that you use a strong password greater than 20 characters, but is not required.\n\nDo you wish to continue using your current password?", "Weak Password", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)){
+					return;
+				}
+				
+				(new Thread(){public void run(){showKeyWindow();}}).start();
+				String[] keys=RSA.createKeys();
+				ID i=new ID(name.getText(),keys[0],keys[1],new String(pass2.getPassword()),hashmethod.getSelectedIndex());
+				if(true){//for online accounts
+				}
+				disposeKeyWindow();
+				dispose();
+			}else{
+				pass1.setText("");
+				pass2.setText("");
+				JOptionPane.showMessageDialog(this, "The passwords supplied do not match. Please try again.", "Password Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}else if(src==discard){
+			dispose();
+		}else if(src==online){
+			//boolean sel=online.isSelected();
+			//ounamelbl.setEnabled(sel);
+			//ouname.setEnabled(sel);
+			//opasslbl.setEnabled(sel);
+			//opass.setEnabled(sel);
+			//newaccount.setEnabled(sel);
+			JOptionPane.showMessageDialog(this, "This feature is not yet implemented. Online integration is disabled.", "Unavailable", JOptionPane.INFORMATION_MESSAGE);
+			online.setSelected(false);
+		}else if(src==newaccount){
+			String downloadURL="http://5.160.50.151/createAccount.php";
+			Desktop d=Desktop.getDesktop();
+			try {
+				d.browse(new URL(downloadURL).toURI());
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(this, "Unable to open a browser window!\n\nPlease visit "+downloadURL+" to create an online account.", "Browser Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+	private void showKeyWindow(){
+		keyWindow=new JFrame();
+		//keyWindow.setUndecorated(true);
+		keyWindow.add(new JLabel("<html>Please wait while the key pairs are generated...<br>(This may take a while, depending on your computer)</html>"));
+		//keyWindow.setSize(400,100);
+		keyWindow.pack();
+		keyWindow.setResizable(false);
+		keyWindow.setLocationRelativeTo(this);
+		keyWindow.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		keyWindow.setVisible(true);
+	}
+	private void disposeKeyWindow(){
+		keyWindow.dispose();
+	}
+}

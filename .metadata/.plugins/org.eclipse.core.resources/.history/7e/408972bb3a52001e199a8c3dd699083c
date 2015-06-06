@@ -1,0 +1,99 @@
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+
+import javax.swing.*;
+
+public class EncryptionManager{
+	private static URLClassLoader ucl=null;
+	
+	public static final String VERSION="2.0";
+	
+	private static ArrayList<ID> ids=new ArrayList<ID>();
+	
+	private static File prefsFile;
+	
+    public static void main(String[] args){
+    	String s=System.getProperty("java.version");
+    	String[] v=new String[2];
+    	v[0]=s.substring(0,s.indexOf("."));
+    	s=s.substring(s.indexOf(".")+1);
+    	v[1]=s.substring(0,s.indexOf("."));
+    	s=s.substring(s.indexOf(".")+1);
+    	try{
+    		if(Integer.parseInt(v[0])<1){
+    			throw new Exception("Major Version to low!");
+    		}else if(!(Integer.parseInt(v[0])>1) && !(Integer.parseInt(v[1])>=6)){
+    				throw new Exception("Minor Version to low!");
+    		}
+    	}catch(Exception e){
+    		JOptionPane.showMessageDialog(null, "This program requires JAVA version 1.6 or higher.\n\nThe latest version can be found at http://java.com/.", "Wrong Java Version", JOptionPane.ERROR_MESSAGE);
+    		System.exit(1);
+    	}
+    	
+    	prefsFile=new File("Settings.conf");//rel location of prefrences file
+    	if(!prefsFile.exists()){//if the prefs file cannot be found
+    		if(args.length==2 && (args[0].equalsIgnoreCase("-cont") || args[0].equalsIgnoreCase("cont"))){
+    			Settings.addSetting("Terms_Accepted","y");
+    			Settings.addSetting("Installed", "true");
+    			try{
+    				(new File(args[1].replaceAll("%20"," "))).delete();
+    			}catch(Exception e){
+    				JOptionPane.showMessageDialog(null, "DELETE ERROR: "+e.getMessage(), "Delete Error", JOptionPane.ERROR_MESSAGE);
+    			}
+    		}
+    		firstRunSetup();//call first run setup
+    	}else{
+    		Settings.importSettings(prefsFile);
+    		startEncryptionManager();
+    	}
+    }
+    public static void startEncryptionManager(){
+    	System.out.println(Settings.getSetting("Crypto_Lib"));
+    	//TODO: add implementation
+    }
+    private static void firstRunSetup(){
+    	new FirstRunWizard();
+    }
+    public static File getPrefsFile(){
+    	return prefsFile;
+    }
+    public static ArrayList<ID> loadIdentities(){
+    	return new ArrayList<ID>();
+    }
+    public static boolean importIDs(){
+    	ids=new ArrayList<ID>();
+    	if(Settings.getSetting("ID_FOLDER").equals("")){
+			String path=RelativePath.getRelativePath(new File(System.getProperty("user.dir")).toURI(),(new File("./ids/")).toURI());
+			Settings.addSetting("ID_FOLDER",path);
+		}
+    	File dir=new File(Settings.getSetting("ID_FOLDER"));
+    	File[] children=dir.listFiles();
+    	for(int x=0;x<children.length;x++){
+    		if(children[x].getName().substring(children[x].getName().lastIndexOf('.')+1).equalsIgnoreCase("id")){
+    			ids.add(new ID(children[x]));
+    		}
+    	}
+    	return true;
+    }
+    public static ArrayList<ID> getIDs(){
+    	return new ArrayList<ID>(ids);
+    }
+    public static URLClassLoader getLibrary(){
+    	if(ucl==null){
+    		File f=new File(Settings.getSetting("Crypto_Lib"));
+    		try{
+    			URL lib=new URL("jar:file:/"+f.getAbsolutePath()+"!/");
+    			ucl=new URLClassLoader(new URL[] {lib});
+    			ucl.loadClass("Crypto");
+    			ucl.loadClass("Hashes");
+    			ucl.loadClass("RSA");
+    			ucl.loadClass("TEAV");
+    		} catch (Throwable e){
+    			return null;
+    		}
+    	}
+		return ucl;
+	}
+}

@@ -1,0 +1,33 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.net.URISyntaxException;
+
+@SuppressWarnings("serial")
+public class Help extends JFrame implements ActionListener {
+	File helpfile;
+	public Help(){//open to contents (page 0)
+		this(0);
+	}
+	public Help(int page){
+		try {
+			helpfile=new File(getClass().getResource("EM.hlp").toURI());
+		} catch (URISyntaxException e) {
+			JOptionPane.showMessageDialog(null, "Unable to find help file!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		JOptionPane.showMessageDialog(null, loadHelp(page));
+	}
+	
+	private String loadHelp(int page){
+		BufferedReader br=new BufferedReader(new FileReader(helpfile));
+		return "";
+	}
+	public void actionPerformed(ActionEvent arg0) {
+		
+	}
+
+}

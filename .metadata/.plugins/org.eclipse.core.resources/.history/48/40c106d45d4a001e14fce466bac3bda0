@@ -1,0 +1,590 @@
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+
+@SuppressWarnings("serial")
+public class FirstRunWizard extends JFrame implements ActionListener {
+	int page;//keeps track of current page
+	final int lastPage=4;//Last page
+	JPanel main;//main window
+	JButton cancelBtn=new JButton("Cancel");//cancel btn
+	JButton backBtn=new JButton("<< Back");//back btn
+	JButton nextBtn=new JButton("Next >>");//next btn
+	JPanel content;//content pane
+	
+	
+	public FirstRunWizard() {
+		super("Encryption Manager - First Run Setup");//title
+		
+		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("Icon_SM.jpg")));//set frame icon
+		
+		page=0;//set current page to zero
+		if(Settings.getSetting("Installed").equals("true")){
+			page=3;
+		}
+		
+		main=new JPanel(new BorderLayout());//create main pane
+		
+		//set up nav panel and btns
+		//JPanel navBtns=new JPanel(new SpringLayout());//create nav pane
+		//JPanel navBtns=new JPanel(new FlowLayout(FlowLayout.RIGHT));//create nav pane
+		backBtn.setEnabled(false);//disable back btn
+		cancelBtn.addActionListener(this);
+		backBtn.addActionListener(this);
+		nextBtn.addActionListener(this);
+		//((SpringLayout)navBtns.getLayout()).putConstraint(SpringLayout.NORTH, cancelBtn, 0, SpringLayout.NORTH, navBtns);
+		//((SpringLayout)navBtns.getLayout()).putConstraint(SpringLayout.WEST, cancelBtn, 0, SpringLayout.WEST, navBtns);
+		//((SpringLayout)navBtns.getLayout()).putConstraint(SpringLayout.EAST, cancelBtn, -30, SpringLayout.WEST, cancelBtn);
+		//navBtns.add(cancelBtn);//add cancel btn
+		//JLabel spacer=new JLabel("                               ");
+		//spacer.setFont(new Font("COURIER",Font.PLAIN,18));
+		//navBtns.add(spacer);//add spacer
+		//navBtns.add(backBtn);//add back btn
+		//navBtns.add(nextBtn);//add next btn
+		
+		//set up control panel
+		//JPanel ctrlPanel=new JPanel(new BorderLayout());//control button container
+		JPanel ctrlPanel=new JPanel(new SpringLayout());//control button container
+		//ctrlPanel.add(new JSeparator(),BorderLayout.NORTH);//add separator
+		//ctrlPanel.add(navBtns,BorderLayout.SOUTH);//add navigation btns
+		JSeparator sep=new JSeparator();
+		ctrlPanel.setBackground(new Color(255,0,0));
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.SOUTH, ctrlPanel, 40, SpringLayout.NORTH, ctrlPanel);
+
+		ctrlPanel.add(cancelBtn);
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.WEST, cancelBtn, 5, SpringLayout.WEST, ctrlPanel);
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.SOUTH, cancelBtn, -5, SpringLayout.SOUTH, ctrlPanel);
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.EAST, cancelBtn, 100, SpringLayout.WEST, cancelBtn);
+		ctrlPanel.add(nextBtn);
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.EAST, nextBtn, -5, SpringLayout.EAST, ctrlPanel);
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.SOUTH, nextBtn, -5, SpringLayout.SOUTH, ctrlPanel);
+		((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.WEST, nextBtn, -105, SpringLayout.EAST, ctrlPanel);
+		
+		//((SpringLayout)ctrlPanel.getLayout()).putConstraint(SpringLayout.NORTH, sep, 1, SpringLayout.NORTH, ctrlPanel);
+		//ctrlPanel.add(sep);
+		
+		//setup sidebar panel
+		JPanel sideBar=new JPanel();//create sidebar
+		sideBar.add(new JLabel(new ImageIcon(Toolkit.getDefaultToolkit().getImage(getClass().getResource("SetupGraphic.jpg")))));//add image to sidebar
+		
+		//setup content pane
+		if(!Settings.getSetting("Installed").equals("true")){
+			content=page0();
+		}else{
+			content=page3();
+		}
+		
+		//add panels to main panel
+		main.add(sideBar,BorderLayout.WEST);//add sidebar pane
+		main.add(ctrlPanel,BorderLayout.SOUTH);//add nav pane
+		main.add(content,BorderLayout.CENTER);//add content pane
+		
+		setContentPane(main);//set content pane of the JFrame
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);//allow custom action to decide action
+		addWindowListener(new WindowAdapter(){//overrides default window close behavior
+			public void windowClosing(WindowEvent arg0) {
+				cancelFirstRun();
+			}
+		});
+		setSize(600,400);//set window size
+		setResizable(false);//prevent resizing
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation(((int)screenSize.getWidth()/2)-300,((int)screenSize.getHeight()/2)-200);
+		setVisible(true);//show window
+		nextBtn.requestFocus();//request focus for nextbtn
+	}
+	private void cancelFirstRun(){
+		if(JOptionPane.showConfirmDialog(this,"Are you sure you want to exit?\n\nNo options will be saved, and the wizard will be\nlaunched next time you run the program.","Exit?",JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE)==JOptionPane.YES_OPTION){
+			dispose();
+			System.exit(0);
+		}
+	}
+	public void actionPerformed(ActionEvent ae){
+		if(ae.getSource()==cancelBtn){
+			cancelFirstRun();
+		}else if(ae.getSource()==nextBtn){
+			if(page==1 && Settings.getSetting("Installed").equals("true")){
+				page++;
+			}
+			page++;//increment to next page
+			backBtn.setEnabled(false);
+			nextBtn.setEnabled(false);
+			if(page>lastPage){//if the finish btn is clicked
+				setVisible(false);
+	    		try{
+	    			EncryptionManager.getPrefsFile().createNewFile();//create prefs file
+	    		}catch(IOException ioe){//error creating prefs file, tell user and exit
+	    			JOptionPane.showMessageDialog(null,"Could not create preferences file!\nProgram will now quit.","Preference File Error",JOptionPane.ERROR_MESSAGE);
+	    			System.exit(1);
+	    		}
+	    		Settings.deleteSetting("Terms_Accepted");
+				Settings.exportSettings(EncryptionManager.getPrefsFile());//export settings
+				dispose();
+
+				EncryptionManager.startEncryptionManager();//Start Encryption Manager
+			}else if(nextBtn.getText().trim().equalsIgnoreCase("install")){
+				try {
+					copy();
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(this, "The file could not be installed to "+Settings.getSetting("INSTALL_PATH")+".\n"+e.getMessage(), "Operation Failed", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				try {
+					Runtime.getRuntime().exec("java -jar EncryptionManager.jar -cont "+(new File("")).getAbsolutePath(), null, new File(Settings.getSetting("INSTALL_PATH")));
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(this, "Unable to start application.\n"+e.getMessage(), "Operation Failed", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				System.exit(0);
+			}else{
+				changePage(page);
+			}
+		}else if(ae.getSource()==backBtn){
+			backBtn.setEnabled(false);
+			nextBtn.setEnabled(false);
+			if(page==3 && Settings.getSetting("Installed").equals("true")){
+				page--;
+			}
+			page--;
+			changePage(page);
+		}
+	}
+	private void copy() throws IOException{
+	    File inputFile = new File("EncryptionManager.jar");
+	    if(!inputFile.exists()){
+	    	throw new IOException("File Not Found");
+	    }
+	    File outputFile = new File(Settings.getSetting("INSTALL_PATH")+System.getProperty("file.separator")+"EncryptionManager.jar");
+	    if(outputFile.exists()){
+	    	outputFile.delete();
+	    }
+	    FileChannel in = null, out = null;
+	     try {          
+	          in = new FileInputStream(inputFile).getChannel();
+	          out = new FileOutputStream(outputFile).getChannel();
+	 
+	          long size = in.size();
+	          MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0, size);
+	 
+	          out.write(buf);
+	 
+	     } finally {
+	          if (in != null)          in.close();
+	          if (out != null)     out.close();
+	     }
+	}
+	private void changePage(int p){
+		main.remove(content);
+		if(p==lastPage){
+			nextBtn.setText("  Finish  ");
+		}else if(!nextBtn.getText().trim().equals("Next >>")){
+			nextBtn.setText("Next >>");
+		}
+		switch(p){
+			case 0: content=page0(); break;
+			case 1: content=page1(); break;
+			case 2: content=page2(); break;
+			case 3: content=page3(); break;
+			case 4: content=page4(); break;
+			default: page=0; content=page0();break;
+		}
+		main.add(content,BorderLayout.CENTER);
+		main.revalidate();
+	}
+	private JPanel page0(){//creates page 0
+		JPanel pane = new JPanel(new SpringLayout());
+		JLabel text1=new JLabel("<html>Welcome to <font color=\"#000142\">Encryption Manager</font> version "+EncryptionManager.VERSION+"!</html>");//add title (row1) text
+		text1.setFont(new Font("",Font.BOLD,20));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, text1, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, text1, 5, SpringLayout.NORTH, pane);
+		pane.add(text1);
+		JLabel text2=new JLabel("<html>This wizard will help guide you through the setup and configuration of <br> the Encryption Manager.</html>");//add row2 of text
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, text2, 10, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, text2, 25, SpringLayout.SOUTH, text1);
+		pane.add(text2);
+		nextBtn.setEnabled(true);
+		return pane;
+	}
+	private JPanel page1(){//creates page 1
+		JPanel pane=new JPanel(new SpringLayout());
+		JLabel title=new JLabel("Terms of Use");
+		title.setFont(new Font("",Font.BOLD,15));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, title, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, title, 5, SpringLayout.NORTH, pane);
+		pane.add(title);
+		JTextArea terms=new JTextArea("TEMPORARY TERMS\n\nThis will eventualy contain the Terms of use.");
+		terms.setEditable(false);
+		JScrollPane scrollpane=new JScrollPane(terms);
+		scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, scrollpane, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, scrollpane, 15, SpringLayout.SOUTH, title);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, scrollpane, -5, SpringLayout.EAST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.SOUTH, scrollpane, -40, SpringLayout.SOUTH, pane);
+		pane.add(scrollpane);
+		JCheckBox checkBox=new JCheckBox("Accept");
+		checkBox.addActionListener(new Page1Listener(nextBtn));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, checkBox, 20, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, checkBox, 1, SpringLayout.SOUTH, scrollpane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.SOUTH, checkBox, -1, SpringLayout.SOUTH, pane);
+		pane.add(checkBox);
+		if(Settings.getSetting("Terms_Accepted").equals("y")){
+			checkBox.setSelected(true);
+			nextBtn.setEnabled(true);
+		}
+		return pane;
+	}
+	private JPanel page2(){//creates page 2
+		JPanel pane=new JPanel(new SpringLayout());
+		
+		JLabel title=new JLabel("Install Location");
+		title.setFont(new Font("",Font.BOLD,15));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, title, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, title, 5, SpringLayout.NORTH, pane);
+		pane.add(title);
+		JCheckBox checkbox=new JCheckBox("Install in current location", true);
+		JLabel loclbl=new JLabel("Location: ");
+		JTextField locfolder=new JTextField("",20);
+		locfolder.setEditable(false);
+		JButton browseBtn=new JButton("Browse...");
+		String p=Settings.getSetting("INSTALL_PATH");
+		if(p.equals("")){
+			loclbl.setEnabled(false);
+			locfolder.setEnabled(false);
+			browseBtn.setEnabled(false);
+		}else{
+			checkbox.setSelected(false);
+			loclbl.setEnabled(true);
+			locfolder.setEnabled(true);
+			browseBtn.setEnabled(true);
+			locfolder.setText(p);
+			nextBtn.setText(" Install  ");
+		}
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, checkbox, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, checkbox, 20, SpringLayout.SOUTH, title);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, loclbl, 25, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, loclbl, 5, SpringLayout.SOUTH, checkbox);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, locfolder, 5, SpringLayout.EAST, loclbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, locfolder, 0, SpringLayout.NORTH, loclbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, browseBtn, 5, SpringLayout.EAST, locfolder);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, browseBtn, -4, SpringLayout.NORTH, locfolder);
+		
+		Page2Listener p2l=new Page2Listener(this,locfolder,nextBtn,checkbox,browseBtn,loclbl);
+		checkbox.addActionListener(p2l);
+		browseBtn.addActionListener(p2l);
+		
+		pane.add(checkbox);
+		pane.add(loclbl);
+		pane.add(locfolder);
+		pane.add(browseBtn);
+		
+		nextBtn.setEnabled(true);
+		backBtn.setEnabled(true);
+		return pane;
+	}
+	private JPanel page3(){//creates page 3
+		JPanel pane=new JPanel(new SpringLayout());
+		
+		JLabel title=new JLabel("Crypto Library");
+		title.setFont(new Font("",Font.BOLD,15));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, title, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, title, 5, SpringLayout.NORTH, pane);
+		pane.add(title);
+		JLabel liblbl=new JLabel("Crypto Library: ");
+		JTextField libfolder=new JTextField(Settings.getSetting("Crypto_Lib"),20);
+		libfolder.setEditable(false);
+		JButton browseBtn=new JButton("Browse...");
+		JLabel infolbl=new JLabel();
+		browseBtn.addActionListener(new Page3Listener(this,libfolder,nextBtn,infolbl));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, liblbl, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, liblbl, 20, SpringLayout.SOUTH, title);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, libfolder, 5, SpringLayout.EAST, liblbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, libfolder, 0, SpringLayout.NORTH, liblbl);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, browseBtn, 5, SpringLayout.EAST, libfolder);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, browseBtn, -4, SpringLayout.NORTH, libfolder);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, infolbl, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, infolbl, 20, SpringLayout.SOUTH, libfolder);
+		pane.add(liblbl);
+		pane.add(libfolder);
+		pane.add(browseBtn);
+		pane.add(infolbl);
+		
+		JEditorPane downloadlbl=null;
+		
+		final String downloadURL="http://5.160.50.151/Crypto/DownloadCryptoLibrary.php";
+		
+		downloadlbl = new JEditorPane("text/html","<html><a href=\""+downloadURL+"\">Click here</a> to download the latest version of the Library.</html>");
+		downloadlbl.setEditable(false);
+		downloadlbl.setOpaque(false);
+		final JFrame parent=this;
+		downloadlbl.addHyperlinkListener(new HyperlinkListener(){   
+			public void hyperlinkUpdate(HyperlinkEvent hle) {   
+				if (HyperlinkEvent.EventType.ACTIVATED.equals(hle.getEventType())&&JOptionPane.YES_OPTION==JOptionPane.showConfirmDialog(parent, "This action will open a browser window to download the Crypto Library.\n\nDo you wish to continue?", "Continue?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)){
+					Desktop d=Desktop.getDesktop();
+					try {
+						d.browse(hle.getURL().toURI());
+					} catch (Exception e) {
+						JOptionPane.showMessageDialog(parent, "Unable to open a browser window!\n\nPlease visit "+downloadURL+" to manually download the Library.", "Browser Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}   
+			}   
+		});   
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, downloadlbl, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.SOUTH, downloadlbl, -10, SpringLayout.SOUTH, pane);
+		pane.add(downloadlbl);
+		
+		if(Settings.getSetting("Crypto_Lib").equals("")){
+			nextBtn.setEnabled(false);
+		}else{
+			try{
+            	URL lib=new URL("jar:file:/"+(new File(Settings.getSetting("Crypto_Lib"))).getAbsolutePath()+"!/");
+            	URLClassLoader ucl=new URLClassLoader(new URL[] {lib});  
+            	ucl.loadClass("Crypto");
+            	infolbl.setText("<html><font size=\"+1\"><b><u>Crypto Version</u></b>:</font> "+Crypto.VERSION+"<br><br><b><u><font size=\"+1\">Available Functions</font></u></b><br>"+Crypto.AVAILABLE_FUNCTIONS.replace("\n", "<br>")+"</html>");
+            }catch(Throwable e){
+            	infolbl.setText("Crypto Library Error!");
+            }
+            infolbl.repaint();
+            infolbl.revalidate();
+			nextBtn.setEnabled(true);
+		}
+		backBtn.setEnabled(true);
+		
+		return pane;
+	}
+	private JPanel page4(){//creates page 4
+		JPanel pane = new JPanel(new SpringLayout());
+		
+		JLabel text1=new JLabel("Identity Setup");
+		text1.setFont(new Font("",Font.BOLD,15));
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, text1, 5, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, text1, 5, SpringLayout.NORTH, pane);
+		pane.add(text1);
+		JLabel text2=new JLabel("<html>This page will help you create a new Identity or import an existing<br>one. An Identity is what identifies you to others, and allows others<br>to verify you as the original sender of content, and encode content<br>that only you can view.<br>You may create or import as many Identities as you wish, but<br>may only have one as the default.<br><br>You can learn more about Public Key Encryption at<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://en.wikipedia.org/wiki/Public_key_encryption.</html>");//add row2 of text
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, text2, 10, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, text2, 25, SpringLayout.SOUTH, text1);
+		pane.add(text2);
+
+		JComboBox ids=new JComboBox();
+		JButton newId=new JButton("New Identity");
+		JButton importId=new JButton("Import Identity");
+		Page4Listener p4l=new Page4Listener(this,nextBtn,ids);
+		newId.addActionListener(p4l);
+		importId.addActionListener(p4l);
+
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, newId, 100, SpringLayout.WEST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, newId, 20, SpringLayout.SOUTH, text2);
+		pane.add(newId);
+
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.EAST, importId, -100, SpringLayout.EAST, pane);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, importId, 20, SpringLayout.SOUTH, text2);
+		pane.add(importId);
+		
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.NORTH, ids, 10, SpringLayout.SOUTH, importId);
+		((SpringLayout)pane.getLayout()).putConstraint(SpringLayout.WEST, ids, 20, SpringLayout.WEST, pane);
+		EncryptionManager.importIDs();
+		int s=0;
+		while((s=ids.getItemCount())>0){
+			ids.removeItemAt(s-1);
+		}
+		ArrayList<ID> idlist=EncryptionManager.getIDs();
+		if(idlist.size()>0){
+			for(int x=0;x<idlist.size();x++){
+				ids.insertItemAt(idlist.get(x).getName(), ids.getItemCount());
+			}
+			ids.setSelectedIndex(0);
+			ids.setEnabled(true);
+		}else{
+			ids.setEnabled(false);
+		}
+		pane.add(ids);
+		
+		backBtn.setEnabled(true);
+		return pane;
+	}
+}
+
+class Page1Listener implements ActionListener{
+	private JButton next;
+	public Page1Listener(JButton btn){
+		next=btn;
+	}
+	public void actionPerformed(ActionEvent ae){
+		JCheckBox src=(JCheckBox)ae.getSource();
+		if(src.isSelected()){
+			next.setEnabled(true);
+			Settings.addSetting("Terms_Accepted","y");
+			next.requestFocus();
+		}else{
+			next.setEnabled(false);
+			Settings.deleteSetting("Terms_Accepted");
+		}
+	}
+}
+
+class Page2Listener implements ActionListener{
+	private final JFileChooser fc=new JFileChooser(new File("."));
+	private JTextField folder;
+	private JFrame frame;
+	private JButton btn;
+	private JCheckBox check;
+	private JButton browse;
+	private JLabel loclbl;
+	public Page2Listener(JFrame a,JTextField b,JButton c,JCheckBox d,JButton e,JLabel f){
+		folder=b;
+		frame=a;
+		btn=c;
+		check=d;
+		browse=e;
+		loclbl=f;
+		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	}
+	public void actionPerformed(ActionEvent ae){
+		if(ae.getSource()==browse){
+			if(!folder.getText().equals("") && folder.getText()!=null){
+				fc.setCurrentDirectory(new File(folder.getText()));
+			}
+			int val=fc.showDialog(frame,"Select");
+			if (val == JFileChooser.APPROVE_OPTION) {
+	            File file=fc.getSelectedFile();
+	            if(file.getAbsolutePath().equals((new File("")).getAbsolutePath())){
+	            	JOptionPane.showMessageDialog(frame, "The program is already located at this location.\nThe \"Install in Current Location\" option has been selected for you.","Invalid Location",JOptionPane.WARNING_MESSAGE);
+	            	check.setSelected(true);
+	            	loclbl.setEnabled(false);
+	            	folder.setEnabled(false);
+	            	browse.setEnabled(false);
+					btn.setText("Next >>");
+					btn.setEnabled(true);
+	            }else{
+		            String path=file.getPath();
+		            folder.setText(path);
+		            Settings.addSetting("INSTALL_PATH", path);
+		            btn.setEnabled(true);
+	            }
+	        }
+		}else if(ae.getSource()==check){
+			if(check.isSelected()){
+				browse.setEnabled(false);
+				folder.setEnabled(false);
+				loclbl.setEnabled(false);
+				Settings.deleteSetting("INSTALL_PATH");
+				btn.setText("Next >>");
+				btn.setEnabled(true);
+			}else{
+				browse.setEnabled(true);
+				folder.setEnabled(true);
+				loclbl.setEnabled(true);
+				btn.setText(" Install  ");
+				if(folder.getText().equals("")||folder.getText()==null){
+					btn.setEnabled(false);
+				}else{
+		            Settings.addSetting("INSTALL_PATH", folder.getText());
+					btn.setEnabled(true);
+				}
+			}
+		}
+	}
+}
+class Page3Listener implements ActionListener{
+	private final JFileChooser fc=new JFileChooser(new File("."));
+	private JTextField folder;
+	private JFrame frame;
+	private JButton btn;
+	private JLabel info;
+	public Page3Listener(JFrame a,JTextField b,JButton c,JLabel d){
+		folder=b;
+		frame=a;
+		btn=c;
+		info=d;
+		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fc.setFileFilter(new javax.swing.filechooser.FileFilter(){
+			public boolean accept(File f){
+				return f.isDirectory() || checkLibrary(f);
+			}
+			public String getDescription(){
+				return "Crypto library .jar Files";
+			}
+			private boolean checkLibrary(File f){
+				if(!f.getName().toLowerCase().endsWith(".jar")){
+					return false;
+				}
+				try{
+					URL lib=new URL("jar:file:/"+f.getAbsolutePath()+"!/");
+					URLClassLoader ucl=new URLClassLoader(new URL[] {lib});
+					ucl.loadClass("Crypto");
+					ucl.loadClass("Hashes");
+					ucl.loadClass("RSA");
+					ucl.loadClass("TEAV");
+				} catch (Throwable e){
+					return false;
+				}
+				return true;
+			}
+		});
+	}
+	public void actionPerformed(ActionEvent ae){
+		int val=fc.showOpenDialog(frame);
+		if (val == JFileChooser.APPROVE_OPTION) {
+            File file=fc.getSelectedFile();
+            String path=RelativePath.getRelativePath(new File(System.getProperty("user.dir")).toURI(),file.toURI());
+            try{
+            	URL lib=new URL("jar:file:/"+file.getAbsolutePath()+"!/");
+            	URLClassLoader ucl=new URLClassLoader(new URL[] {lib});  
+            	ucl.loadClass("Crypto");
+            	info.setText("<html><font size=\"+1\"><b><u>Crypto Version</u></b>:</font> "+Crypto.VERSION+"<br><br><b><u><font size=\"+1\">Available Functions</font></u></b><br>"+Crypto.AVAILABLE_FUNCTIONS.replace("\n", "<br>")+"</html>");
+                Settings.changeSetting("Crypto_Lib",path);
+                folder.setText(path);
+                btn.setEnabled(true);
+            }catch(Exception e){
+            	info.setText("Crypto Library Error!");
+            }
+            info.repaint();
+            info.revalidate();
+        }
+	}
+}
+
+class Page4Listener implements ActionListener{
+	private JButton next;
+	private JFrame parent;
+	private JComboBox ids;
+	public Page4Listener(JFrame p,JButton nextbtn,JComboBox j){
+		parent=p;
+		next=nextbtn;
+		ids=j;
+	}
+	public void actionPerformed(ActionEvent ae){
+		if(((JButton)ae.getSource()).getText().trim().equalsIgnoreCase("New Identity")){
+			new NewID(parent);
+			reload();
+		}else if(((JButton)ae.getSource()).getText().trim().equalsIgnoreCase("Import Identity")){
+			//JDialog
+			//reload IDs
+		}
+	}
+	private void reload(){
+		EncryptionManager.importIDs();
+		int s=0;
+		while((s=ids.getItemCount())>0){
+			ids.removeItemAt(s-1);
+		}
+		ArrayList<ID> idlist=EncryptionManager.getIDs();
+		if(idlist.size()>0){
+			for(int x=0;x<idlist.size();x++){
+				ids.insertItemAt(idlist.get(x).getName(), ids.getItemCount());
+			}
+			ids.setSelectedIndex(0);
+			ids.setEnabled(true);
+		}else{
+			ids.setEnabled(false);
+		}
+	}
+}
